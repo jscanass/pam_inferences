@@ -13,7 +13,6 @@ from librosa.feature import melspectrogram, mfcc
 from tensorflow import keras
 
 from time import time
-from joblib import Parallel, delayed, load
   
 def preprocessing_metadata(data_folder, 
                            window_size,
@@ -22,8 +21,8 @@ def preprocessing_metadata(data_folder,
                            verbose=False):
     
     # Get audio metadata
-    print('Extracting metadata...')
-    df = util.get_metadata_dir(data_folder, verbose=verbose)
+    print('Extracting metadata in folder ', 'data/'+data_folder)
+    df = util.get_metadata_dir('data/'+data_folder, verbose=verbose)
     print('Metadata obtained. Number of .wav files:',len(df))
     print('Count of lenghts:\n',
             df['length'].value_counts(dropna=False))
@@ -91,10 +90,11 @@ def inference_df_gbc(audio_path, trained_model, min, window_size):
 
 def main():
     
+    # Read parameters of inference
     parser = argparse.ArgumentParser(description='Inferences')
     parser.add_argument('--config', help='Path to config file', default='configs/example.yaml')
     args = parser.parse_args()
-    # load config
+
     print(f'Using config "{args.config}"')
     cfg = yaml.safe_load(open(args.config, 'r'))
     
@@ -103,12 +103,16 @@ def main():
     data_folder = cfg['data_folder']
     trained_model_path = cfg['trained_model']
     
+    # Preprocecessing audio data to dataframe with inference samples
+    
     df = preprocessing_metadata(data_folder,window_size,sliding_window)
-    # df = df.sample(nrows=10000)
+    df = df.sample(10000)
 
     ProgressBar().register()
     ddf = dd.from_pandas(df, npartitions=8)
 
+    # Apply inferences over all samples using CNN model
+    
     t0 = time()
     ddf['inference cnn'] = ddf.apply(lambda x: inference_df_cnn(x['path_audio'],
                                                                 trained_model_path, 
@@ -122,7 +126,7 @@ def main():
     df = ddf.compute()
     t1 = time()    
     execution_time = str(round(t1-t0,1))
-    print('-------------------------->>>>> Results for Dask with CNN ' + execution_time)      
+    print('-------------->>>>> Results for Dask with CNN ' + execution_time)      
     
     df['visita'] = df['dir'].apply(lambda x:x.split('/')[1])
     df['fname'] = df['dir'].apply(lambda x:x.split('/')[-1])
@@ -138,7 +142,7 @@ def main():
     if not os.path.exists('results/' + folder_name):
         os.makedirs('results/' + folder_name)
     df.to_parquet('results/' + folder_name +
-                    'inferences.parquet.gzip' ,
+                    'inferences2.parquet.gzip' ,
                 compression='gzip')
     
 if __name__ == "__main__":
@@ -146,7 +150,12 @@ if __name__ == "__main__":
     main()
     
     """
-    # JOBLIB
+    # Other functions for speed up inference
+    
+    ## joblib
+    
+    from joblib import Parallel, delayed, load
+
     dir_wav_files = []
     inference_results = []
     wrong = []
@@ -196,7 +205,7 @@ if __name__ == "__main__":
             tqdm_object.close()
     ###
     
-    # SWIFTER
+    ## swifter
     import swifter
     df[['inference_gbc','inference_cnn']] = df.swifter.progress_bar(True).apply(lambda x: inference_df(x['path_audio'], 
                                                                                      x['min']), axis=1,result_type='expand')
