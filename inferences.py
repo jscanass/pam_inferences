@@ -89,46 +89,6 @@ def inference_df_gbc(audio_path, trained_model, min, window_size):
     except:
         return (None)
 
-def pam_inference(audio_path):
-    """
-    This is a function that was used in a previous version.
-    In this previous version we do not used the preprocessing dataframe
-    and apply inferences directly over any .wav file. 
-    In this way, we read, trim, and apply inference over the raw audio.
-    """
-
-    inference_results = []
-    
-    try:
-        #s, fs = sound.load(path)
-        s, fs = librosa.load(audio_path)
-        length = len(s)/fs
-        for i in range(int(length)+1):
-            if length>i+window_size:
-                s_slice = sound.trim(s, fs, min_t = i, max_t = i+window_size)
-                inference_results.append(list((str(audio_path),length, i, i+window_size) + inference(s_slice, fs)))
-            elif window_size>length:
-                inference_results.append(list((str(audio_path),length, i, i+window_size) + ('e1', None, None)))
-            else:
-                inference_results.append(list((str(audio_path),length, i, i+window_size) + ('e2', None, None)))
-        return inference_results
-
-    except:
-        return list([list((str(audio_path), None, None, None, 'e3', None, None))])
-
-def save_chorus(audio_path):
-    tf0 = time()
-    inference_results_all = pam_inference(audio_path)
-
-    #inference_results_all = [item for sublist in inference_results_all for item in sublist]
-
-    df_inferences = pd.DataFrame(inference_results_all,
-                                columns=['dir','lengt','min','max','random_inf','gbrt_inf','cnn_inf'])
-
-    df_inferences.to_csv('/media/juan/Nuevo vol/PAM/results/'+str(audio_path).split('/')[-1]+'.csv',
-                            index=False,sep=';')     
-    print('save chorus time', round(tf0-time(),2))
-
 def main():
     
     parser = argparse.ArgumentParser(description='Inferences')
