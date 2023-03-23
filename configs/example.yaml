@@ -3,7 +3,7 @@
 # In Python, this is all read as a dict.
 
 # dataset parameters
-data_folder : 'Local1(Orleans)/' #Folder to search .wav file inside data/ folder
+data_folder : 'Local1(Orleans)/Visita1/1_gravador/memoria_A/' #Folder to search .wav file inside data/ folder
 
 # inference search hyperparameters
 window_size : 3

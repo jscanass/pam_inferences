@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+# data 
+data/Local1(Orleans)/
+data/Local1(Orleans).zip
+
 # Distribution / packaging
 .Python
 build/
