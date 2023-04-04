@@ -14,6 +14,14 @@ from tensorflow import keras
 
 from time import time
   
+import torch
+import torchaudio
+from torchvision.transforms import Resize
+
+from torch import nn
+from torch_models import ResNetClassifier
+
+
 def preprocessing_metadata(data_folder, 
                            window_size,
                            sliding_window, 
@@ -58,12 +66,12 @@ def preprocessing_metadata(data_folder,
             
     return df_sw_all
 
-def inference_df_cnn(audio_path, trained_model, min, window_size):
+def inference_df_cnn(audio_path, trained_model, start_second, window_size):
     
     trained_model = keras.models.load_model(trained_model)
 
     try:
-        s, fs = librosa.load(path=audio_path,offset=min,duration=window_size)
+        s, fs = librosa.load(path=audio_path,offset=start_second,duration=window_size)
         S = melspectrogram(y=s,sr=fs, n_fft=1024, 
                             hop_length=256, n_mels=128, 
                             power=1.0, fmin = 50, fmax=4000)
@@ -74,11 +82,11 @@ def inference_df_cnn(audio_path, trained_model, min, window_size):
     except:
         return (None)
 
-def inference_df_gbc(audio_path, trained_model, min, window_size):
+def inference_df_gbc(audio_path, trained_model, start_second, window_size):
     
     sklearn_clfs = load(trained_model)
     try:
-        s, fs = librosa.load(path=audio_path,offset=min,duration=window_size)
+        s, fs = librosa.load(path=audio_path,offset=start_second,duration=window_size)
        
         mfcc_feature = mfcc(y=s, sr=fs, n_mfcc=20, n_fft=1024, 
                         win_length=1024, hop_length=512, htk=True)                
@@ -87,6 +95,55 @@ def inference_df_gbc(audio_path, trained_model, min, window_size):
         return (sklearn_inference[0])
     except:
         return (None)
+
+def inference_df_torch(audio_path, 
+                    trained_model, 
+                    start_second, 
+                    window_size,
+                    device='cpu',
+                    sample_rate=22050
+                    # TO DO: hyperparameters_dict
+                    ):
+    
+    try:
+        waveform, sample_rate = torchaudio.load(audio_path, 
+                                        frame_offset=sample_rate*start_second, 
+                                        num_frames=sample_rate*window_size)
+
+
+        device = device # from hyperparameters_dict
+        sample_rate = sample_rate # from hyperparameters_dict
+
+        sigmoid = nn.Sigmoid()
+
+        # load back the model
+        
+        trained_model.eval()
+
+        # test transformations
+        mel_spectrogram = torchaudio.transforms.MelSpectrogram(
+            sample_rate=sample_rate,
+            n_fft=1024,
+            hop_length=128,
+            n_mels=128
+        )
+        test_transform = nn.Sequential(                           # Transforms. Here's where we could add data augmentation (see Björn's lecture on August 11).
+                mel_spectrogram,                                            # convert to a spectrogram
+                torchaudio.transforms.AmplitudeToDB(),
+                Resize([224, 448]),
+                                    )
+                                    
+        input = test_transform(waveform)
+        # 2, 224, 448 -> 1, 1, 224, 448
+        input = input[0].unsqueeze_(0).unsqueeze_(0)
+        
+        inference = sigmoid(trained_model(input))
+        return inference.tolist()#.detach().numpy()
+    except Exception as e: 
+        #print('File:',start_second, audio_path)
+        #print(e)
+        return [None]*42
+
 
 def main():
     
@@ -104,6 +161,13 @@ def main():
     trained_model_path = cfg['trained_model']
     
     # Preprocecessing audio data to dataframe with inference samples
+
+    audio_path = 'data/Local1(Orleans)/Visita1/1_gravador/memoria_A/INCT20955_20190830_230000.wav'
+    device = 'cpu'
+    model_instance = ResNetClassifier(model_type='resnet152',
+                                ).to(device)
+    state_dict = torch.load(trained_model_path)
+    model_instance.load_state_dict(state_dict)
     
     df = preprocessing_metadata(data_folder,window_size,sliding_window)
     df = df.sample(10000)
@@ -114,8 +178,8 @@ def main():
     # Apply inferences over all samples using CNN model
     
     t0 = time()
-    ddf['inference cnn'] = ddf.apply(lambda x: inference_df_cnn(x['path_audio'],
-                                                                trained_model_path, 
+    ddf['inference'] = ddf.apply(lambda x: inference_df_torch(x['path_audio'],
+                                                                model_instance, 
                                                                 x['min'],
                                                                 window_size,
                                                                 ),
