@@ -8,7 +8,8 @@ data_folder : 'Local1(Orleans)/Visita1/1_gravador/memoria_A/' #Folder to search 
 # inference search hyperparameters
 window_size : 3
 sliding_window : 1 
-trained_model : 'models/202211280507_469925_CNN.h5'
+trained_model : 'models/resnet152_4sites/resnet152_final.pth'
+#trained_model : 'models/202211280507_469925_CNN.h5'
 #trained_model : 'models/202211280443_438298_GradientBoostingClassifier+mfcc_model.pkl'
 
 # inference transformation hyperparameters same as evaluation
