@@ -144,7 +144,6 @@ def inference_df_torch(audio_path,
         #print(e)
         return [None]*42
 
-
 def main():
     
     # Read parameters of inference
@@ -170,7 +169,7 @@ def main():
     model_instance.load_state_dict(state_dict)
     
     df = preprocessing_metadata(data_folder,window_size,sliding_window)
-    df = df.sample(10000)
+    # df = df.sample(10000)
 
     ProgressBar().register()
     ddf = dd.from_pandas(df, npartitions=8)
@@ -190,10 +189,10 @@ def main():
     df = ddf.compute()
     t1 = time()    
     execution_time = str(round(t1-t0,1))
-    print('-------------->>>>> Results for Dask with CNN ' + execution_time)      
+    print('-------------->>>>> Results for Dask ' + execution_time)     
     
-    df['visita'] = df['dir'].apply(lambda x:x.split('/')[1])
-    df['fname'] = df['dir'].apply(lambda x:x.split('/')[-1])
+    df['visita'] = df['path_audio'].apply(lambda x:x.split('/')[1])
+    df['fname'] = df['path_audio'].apply(lambda x:x.split('/')[-1])
 
     df['fname'] = df['fname'].str.split(pat='.').str[0]
     df[['site','date']] = df['fname'].str.split(pat='_',n=1,expand=True)
@@ -206,8 +205,10 @@ def main():
     if not os.path.exists('results/' + folder_name):
         os.makedirs('results/' + folder_name)
     df.to_parquet('results/' + folder_name +
-                    'inferences2.parquet.gzip' ,
+                    'inferences_torch.parquet.gzip' ,
                 compression='gzip')
+    print('Results saved in: results/' + folder_name +
+                    'inferences_torch.parquet.gzip')
     
 if __name__ == "__main__":
     
