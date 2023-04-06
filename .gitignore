@@ -9,7 +9,6 @@ __pycache__/
 # data 
 data/Local1(Orleans)/
 data/Local1(Orleans).zip
-models/resnet152_4sites/
 
 # Distribution / packaging
 .Python
