@@ -1,5 +1,5 @@
 import argparse
-import yaml
+from yaml import safe_load
 from pipelines.WorkFlow import Workflow
 
 parser = argparse.ArgumentParser(description='Inferences')
@@ -8,7 +8,7 @@ args = parser.parse_args()
 
 print(f'Using config "{args.config}"')
 
-cfg = yaml.safe_load(open(args.config, 'r'))
+cfg = safe_load(open(args.config, 'r'))
 
 site = cfg['site']
 model_parameters = cfg['model']
