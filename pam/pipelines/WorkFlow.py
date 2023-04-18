@@ -2,12 +2,11 @@ import os
 import nipype
 from os.path import join as opj
 from nipype.interfaces.utility import IdentityInterface
-from nipype.interfaces.io import SelectFiles, DataSink
+from nipype.interfaces.io import DataSink
 from nipype import Node
-from pam.pipelines.nodes.Input import Input
-from pam.pipelines.nodes.Model import Model
-from pam.pipelines.nodes.Output import Output
-
+from .nodes.Input import Input
+from .nodes.Model import Model
+from .nodes.Output import Output
 
 class WorkflowBase:
 

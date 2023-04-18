@@ -15,7 +15,7 @@ class Output(BaseInterface):
     output_spec = OutputSpec
 
     def _run_interface(self, runtime):
-        from pam.dataset.uploader import upload_blob_to_container
+        from dataset.uploader import upload_blob_to_container
         out_put = self.inputs.in_file
 
         upload_blob_to_container(out_put)

@@ -16,7 +16,7 @@ import torchaudio
 from torchvision.transforms import Resize
 
 from torch import nn
-from pam.models.templates_models.torch_models import ResNetClassifier
+from models.templates_models.torch_models import ResNetClassifier
 
 
 def preprocessing_metadata(data_folder, 

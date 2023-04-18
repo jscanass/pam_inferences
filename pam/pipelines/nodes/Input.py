@@ -16,7 +16,7 @@ class Input(BaseInterface):
 
     def _run_interface(self, runtime):
 
-        from pam.dataset.searcher import get_records
+        from dataset.searcher import get_records
         site = self.inputs.site
 
         output = get_records(site, path_home=False, download=True)

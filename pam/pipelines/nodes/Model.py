@@ -17,7 +17,7 @@ class Model(BaseInterface):
 
     def _run_interface(self, runtime):
         import ast
-        from pam.core.inferences import run_inferences
+        from core.inferences import run_inferences
 
         data_path = self.inputs.folder_input
         model_path = self.inputs.model_path
