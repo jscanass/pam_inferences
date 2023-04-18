@@ -2,21 +2,17 @@
 # You can also create lists and group parameters together into nested sub-parts.
 # In Python, this is all read as a dict.
 
-# dataset parameters
-data_folder : 'Local1(Orleans)/Visita1/1_gravador/memoria_A/' #Folder to search .wav file inside data/ folder
-
-# inference search hyperparameters
-window_size : 3
-sliding_window : 1 
-trained_model : 'models/resnet152_4sites/resnet152_final.pth'
-#trained_model : 'models/202211280507_469925_CNN.h5'
-#trained_model : 'models/202211280443_438298_GradientBoostingClassifier+mfcc_model.pkl'
-
-# inference transformation hyperparameters same as evaluation
-n_fft : 1024
-hop_length : 256 
-n_mels : 128
-f_min : 50
-f_max : 4000
-
-
+# Experiment parameters
+site : 'INCT20955'
+model:
+  trained_path: 'models/pretrained_weights/resnet152_4sites/resnet152_final.pth'
+  hyper_parameters:
+    search:
+      window_size : 3
+      sliding_window : 1
+    transformation:
+      n_fft : 1024
+      hop_length : 256
+      n_mels : 128
+      f_min : 50
+      f_max : 4000

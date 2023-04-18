@@ -1,0 +1,184 @@
+import os
+from pathlib import Path
+from dataset.utils import *
+
+
+def get(prefix=None, name_start_with=None, ext=None, output_dir=None, parent_folder=None, path_home = True, download=True):
+    """
+    Get data from an Azure Storage account according a filtering rules
+
+    @param prefix: Prefix to the blob
+    @param name_start_with: First part of the blob name
+    @param ext: Extension of the blob
+    @param output_dir: Out put dir for the downloaded files
+    @param parent_folder: Parent folder for the output dir
+    @param download: if file should be downloaded or not
+
+    @return: None if download parameter is True, if not, return a list of blob name according the filtering rules
+    """
+
+    client = get_container_client(account_name='chorus', account_key=KEY, container_name=CONTAINER_NAME_BACKUP)
+    blob_list = client.list_blobs(name_starts_with=prefix + name_start_with)
+    file_names = []
+
+    if download:
+        if path_home:
+            base_dir = str(Path.home()) + '/.chorus'
+        else:
+            base_dir = '.chorus'
+        if not os.path.exists(base_dir):
+            os.mkdir(base_dir)
+
+        if parent_folder is not None:
+            base_dir = base_dir + '/' + name_start_with
+            if not os.path.exists(base_dir):
+                os.mkdir(base_dir)
+
+        if output_dir is not None:
+            base_dir = base_dir + '/' + output_dir
+            if not os.path.exists(base_dir):
+                os.mkdir(base_dir)
+
+    if ext is None:
+        return blob_list
+    else:
+
+        for blob in blob_list:
+            # print("\t" + blob.name)
+
+            if ext == blob.name.split('.')[-1]:
+
+                if download:
+                    file_names.append(blob.name)
+                    if not os.path.exists(base_dir + '/' + blob.name.split('/')[-1]):
+                        try:
+                            with open(file=base_dir + '/' + blob.name.split('/')[-1], mode="wb") as download_file:
+                                download_file.write(client.download_blob(blob).readall())
+
+                        except Exception as e:
+                            # TODO: Manage the exception
+                            pass
+                else:
+                    file_names.append(blob.name)
+    return file_names
+
+
+def get_annotation(site, type='bounding', download=True):
+    """
+    Get annotation according to the type
+
+    @param site: ID of the location
+    @param type: Type of annotation (bounding or presence)
+    @param download: If data should be downloaded or not
+
+    @return: None if download parameter is True, if not, return a list of blob name according the filtering rules
+    """
+
+    if type == 'bounding':
+        output = get(prefix=PREFIX_ANNOTATIONS_BOUNDING_BOX, name_start_with=site, ext='txt', output_dir='annotation',
+                     parent_folder=site, download=download)
+    elif type == 'presence':
+        output = get(prefix=PREFIX_ANNOTATIONS_PRESENCE_ABSENCE, name_start_with=site, ext='txt',
+                     output_dir='annotation', parent_folder=site, download=download)
+    else:
+        raise Exception('Type ' + type + ' is not available in the storage account')
+    return output
+
+
+def get_environmental_variables(site, type=None, download=True):
+    """
+    Get environmental variables according to the type
+
+    @param site: ID of the location
+    @param type: Type of environmental variable (planetary or weather)
+    @param download: If data should be downloaded or not
+
+    @return: None if download parameter is True, if not, return a list of blob name according the filtering rules
+    """
+
+    if type == 'planetary':
+        output = get(prefix=PREFIX_ENVIRONMENTAL_VARIABLES_PLANETARYCOMPUTER, name_start_with=site, ext='csv',
+                     output_dir='enviromental', parent_folder=site, download=download)
+    elif type == 'weather':
+        output = get(prefix=PREFIX_ENVIRONMENTAL_VARIABLES_WEATHERSTATIONS, name_start_with=site, ext='csv',
+                     output_dir='enviromental', parent_folder=site, download=download)
+    else:
+        raise Exception('Type ' + type + ' of environmental variables is not available in the storage account')
+    return output
+
+
+def get_dataloggers(site=None, download=True):
+    """
+    Get dataloggers for a particular location
+
+    @param site: ID of the location
+    @param download: If data should be downloaded or not
+
+    @return: None if download parameter is True, if not, return a list of blob name according the filtering rules
+
+    """
+    if site is not None:
+        output = get(prefix=PREFIX_DATALOGGERS[site], name_start_with=site, ext='xlsx', output_dir='dataloggers',
+                     parent_folder=site, download=download)
+    else:
+        raise Exception("Site is a mandatory parameter")
+    return output
+
+
+def get_records(site=None, path_home=True, download=True):
+    """
+    Get records audio for a particular location
+
+    @param site: ID of the location
+    @param download: If data should be downloaded or not
+
+    @return: None if download parameter is True, if not, return a list of blob name according the filtering rules
+    """
+
+    if site is not None:
+        output = get(prefix=PREFIX_RECORDS[site], name_start_with=site, ext='wav', output_dir='records',
+                     path_home=path_home, parent_folder=site, download=download)
+    else:
+        raise Exception("Site is a mandatory parameter")
+    return output
+
+
+def get_raw_data(site=None):
+    """
+    Get complete available data for a particular location (audios, datalogger, annotation and environmental variables)
+
+    @param site: ID of the location
+
+    @return: None
+
+    """
+
+    if site is not None:
+        get_annotation(site, type='bounding')
+        get_annotation(site, type='presence')
+        get_environmental_variables(site, type='planetary')
+        get_environmental_variables(site, type='weather')
+        get_dataloggers(site)
+        get_records(site)
+        return str(Path.home()) + '/.chorus' + site + '/'
+    else:
+        raise Exception("Site is a mandatory parameter")
+
+
+def get_data_by_filename(file_name_list):
+    """
+    Download blob given a list of blob names
+    @param file_name_list: List of blob names to download
+
+    @return: None
+    """
+
+    if file_name_list is None:
+        raise Exception('file_name_list should a not empty list of file names')
+    else:
+        for i in file_name_list:
+            file_split = i.split('.')
+            file_name = ''.join(file_split[0:-1])
+            ext = file_split[-1]
+            get(prefix='/'.join(file_name.split('/')[0:-1]) + '/', name_start_with=file_name.split('/')[-1], ext=ext,
+                output_dir='raw_data', download=True)

@@ -26,8 +26,8 @@ def preprocessing_metadata(data_folder,
                            verbose=False):
     
     # Get audio metadata
-    print('Extracting metadata in folder ', 'data/'+data_folder)
-    df = util.get_metadata_dir('data/'+data_folder, verbose=verbose)
+    print('Extracting metadata in folder ', data_folder)
+    df = util.get_metadata_dir(data_folder, verbose=verbose)
     print('Metadata obtained. Number of .wav files:',len(df))
     print('Count of lenghts:\n',
             df['length'].value_counts(dropna=False))
@@ -145,71 +145,61 @@ def inference_df_torch(audio_path,
         #print(e)
         return [None]*42
 
-def main():
-    
-    # Read parameters of inference
-    parser = argparse.ArgumentParser(description='Inferences')
-    parser.add_argument('--config', help='Path to config file', default='configs/example.yaml')
-    args = parser.parse_args()
+def run_inferences(data_path, model_path, model_metadata):
+    search_metadata = model_metadata['search']
+    transformation_metadata = model_metadata['transformation']
 
-    print(f'Using config "{args.config}"')
-    cfg = yaml.safe_load(open(args.config, 'r'))
-    
-    window_size = cfg['window_size']
-    sliding_window = cfg['sliding_window']
-    data_folder = cfg['data_folder']
-    trained_model_path = cfg['trained_model']
-    
+    window_size = search_metadata['window_size']
+    sliding_window = search_metadata['sliding_window']
+    trained_model_path = model_path
+
     # Preprocecessing audio data to dataframe with inference samples
 
-    audio_path = 'data/Local1(Orleans)/Visita1/1_gravador/memoria_A/INCT20955_20190830_230000.wav'
     device = 'cpu'
-    model_instance = ResNetClassifier(model_type='resnet152',
-                                ).to(device)
-    state_dict = torch.load(trained_model_path)
+    model_instance = ResNetClassifier(model_type='resnet152').to(device)
+    state_dict = torch.load(trained_model_path, map_location=torch.device(device))
     model_instance.load_state_dict(state_dict)
-    
-    df = preprocessing_metadata(data_folder,window_size,sliding_window)
+
+    df = preprocessing_metadata(data_path, window_size, sliding_window)
     # df = df.sample(10000)
 
     ProgressBar().register()
     ddf = dd.from_pandas(df, npartitions=8)
 
     # Apply inferences over all samples using CNN model
-    
+
     t0 = time()
     ddf['inference'] = ddf.apply(lambda x: inference_df_torch(x['path_audio'],
-                                                                model_instance, 
-                                                                x['min'],
-                                                                window_size,
-                                                                ),
-                                                                axis=1,
-                                                                #result_type='expand'
-                                                                )
+                                                              model_instance,
+                                                              x['min'],
+                                                              window_size,
+                                                              ),
+                                 axis=1,
+                                 # result_type='expand'
+                                 )
     # Convert Dask DataFrame back to Pandas DataFrame
     df = ddf.compute()
-    t1 = time()    
-    execution_time = str(round(t1-t0,1))
-    print('-------------->>>>> Results for Dask ' + execution_time)     
-    
-    df['visita'] = df['path_audio'].apply(lambda x:x.split('/')[1])
-    df['fname'] = df['path_audio'].apply(lambda x:x.split('/')[-1])
+    t1 = time()
+    execution_time = str(round(t1 - t0, 1))
+    print('-------------->>>>> Results for Dask ' + execution_time)
+
+    df['visita'] = df['path_audio'].apply(lambda x: x.split('/')[1])
+    df['fname'] = df['path_audio'].apply(lambda x: x.split('/')[-1])
 
     df['fname'] = df['fname'].str.split(pat='.').str[0]
-    df[['site','date']] = df['fname'].str.split(pat='_',n=1,expand=True)
-    df['date'] = df['date'].str.split('_').apply(lambda x: x[0]+x[1])
+    df[['site', 'date']] = df['fname'].str.split(pat='_', n=1, expand=True)
+    df['date'] = df['date'].str.split('_').apply(lambda x: x[0] + x[1])
     df['date'] = pd.to_datetime(df['date'])
     df['time'] = df['date'].dt.time
     df['day'] = df['date'].dt.date
 
-    folder_name = data_folder.split('data/')[-1][:-1].replace('/', '_')
-    if not os.path.exists('results/' + folder_name):
-        os.makedirs('results/' + folder_name)
-    df.to_parquet('results/' + folder_name +
-                    'inferences_torch.parquet.gzip' ,
-                compression='gzip')
-    print('Results saved in: results/' + folder_name +
-                    'inferences_torch.parquet.gzip')
+    output_file = data_path.split('chorus')[-1].split('records')[0].replace('/',
+                                                                            '') + '_' + 'inferences_torch.parquet.gzip'
+    df.to_parquet(output_file, compression='gzip')
+
+    print('Results saved in: ' + output_file)
+
+    return output_file
 
 ''' 
 if __name__ == "__main__":
