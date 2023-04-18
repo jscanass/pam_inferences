@@ -1,25 +1,22 @@
 import os
 import argparse
 import yaml
-import librosa 
+#import librosa
 import numpy as np
 import pandas as pd
-import dask.dataframe as dd
-
-from dask.diagnostics import ProgressBar
 from maad import util
-from joblib import load
-from librosa.feature import melspectrogram, mfcc
-from tensorflow import keras
-
+#from joblib import load
+#from librosa.feature import melspectrogram, mfcc
+#from tensorflow import keras
+import dask.dataframe as dd
+from dask.diagnostics import ProgressBar
 from time import time
-  
 import torch
 import torchaudio
 from torchvision.transforms import Resize
 
 from torch import nn
-from torch_models import ResNetClassifier
+from pam.models.templates_models.torch_models import ResNetClassifier
 
 
 def preprocessing_metadata(data_folder, 
@@ -66,6 +63,7 @@ def preprocessing_metadata(data_folder,
             
     return df_sw_all
 
+'''
 def inference_df_cnn(audio_path, trained_model, start_second, window_size):
     
     trained_model = keras.models.load_model(trained_model)
@@ -81,7 +79,9 @@ def inference_df_cnn(audio_path, trained_model, start_second, window_size):
         return (keras_inference[0])
     except:
         return (None)
+'''
 
+'''
 def inference_df_gbc(audio_path, trained_model, start_second, window_size):
     
     sklearn_clfs = load(trained_model)
@@ -95,6 +95,7 @@ def inference_df_gbc(audio_path, trained_model, start_second, window_size):
         return (sklearn_inference[0])
     except:
         return (None)
+'''
 
 def inference_df_torch(audio_path, 
                     trained_model, 
@@ -209,7 +210,8 @@ def main():
                 compression='gzip')
     print('Results saved in: results/' + folder_name +
                     'inferences_torch.parquet.gzip')
-    
+
+''' 
 if __name__ == "__main__":
     
     main()
@@ -285,4 +287,4 @@ if __name__ == "__main__":
     df.to_csv('results/inferences_Local1(Orleans)_p.csv',index=False)
     t3 = time()    
     print('-------------------------->>>>> Results for pandas',round(t3-t2,3))
-    """
+'''
