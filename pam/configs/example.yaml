@@ -3,7 +3,8 @@
 # In Python, this is all read as a dict.
 
 # Experiment parameters
-site : 'INCT20955'
+#site : 'INCT20955'
+site : 'INCT4'
 model:
   trained_path: 'models/pretrained_weights/resnet152_4sites/resnet152_final.pth'
   hyper_parameters:

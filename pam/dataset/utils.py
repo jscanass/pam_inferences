@@ -12,7 +12,8 @@ PREFIX_ENVIRONMENTAL_VARIABLES_PLANETARYCOMPUTER = 'INCT.EnvironmentalVariables/
 PREFIX_ENVIRONMENTAL_VARIABLES_WEATHERSTATIONS = 'INCT.EnvironmentalVariables/WeatherStations/'
 
 PREFIX_DATALOGGERS = {'INCT20955': 'INCT.selvino/1_Locais/INCT20995/dataloggers/'}
-PREFIX_RECORDS = {'INCT20955': 'INCT.selvino/1_Locais/INCT20995/gravador/'}
+PREFIX_RECORDS = {'INCT20955': 'INCT.selvino/1_Locais/INCT20995/gravador/',
+                  'INCT4': 'INCT.ftoledo/1_Locais/INCT04/gravador/'}
 
 CONTAINER_NAME_PUBLIC = 'public'
 CONTAINER_NAME_BACKUP = 'backup'
