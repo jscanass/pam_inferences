@@ -1,23 +1,34 @@
 import os
 import argparse
 import yaml
-#import librosa
+import librosa 
 import numpy as np
 import pandas as pd
-from maad import util
-#from joblib import load
-#from librosa.feature import melspectrogram, mfcc
-#from tensorflow import keras
 import dask.dataframe as dd
+
 from dask.diagnostics import ProgressBar
+from maad import util
+from joblib import load
+from librosa.feature import melspectrogram, mfcc
+from tensorflow import keras
+
 from time import time
+  
 import torch
 import torchaudio
 from torchvision.transforms import Resize
 
 from torch import nn
-from models.templates_models.torch_models import ResNetClassifier
+from torch_models import ResNetClassifier
 
+class_mapping = [
+                'SPHSUR', 'BOABIS', 'SCIPER', 'DENNAH', 'LEPLAT', 'RHIICT', 'BOALEP',
+                'BOAFAB', 'PHYCUV', 'DENMIN', 'ELABIC', 'BOAPRA', 'DENCRU', 'BOALUN',
+                'BOAALB', 'PHYMAR', 'PITAZU', 'PHYSAU', 'LEPFUS', 'DENNAN', 'PHYALB',
+                'LEPLAB', 'SCIFUS', 'BOARAN', 'SCIFUV', 'AMEPIC', 'LEPPOD', 'ADEDIP',
+                'ELAMAT', 'PHYNAT', 'LEPELE', 'RHISCI', 'SCINAS', 'LEPNOT', 'ADEMAR',
+                'BOAALM', 'PHYDIS', 'RHIORN', 'LEPFLA', 'SCIRIZ', 'DENELE', 'SCIALT'
+                ]
 
 def preprocessing_metadata(data_folder, 
                            window_size,
@@ -40,7 +51,7 @@ def preprocessing_metadata(data_folder,
     for value in df.length.unique():
         max_value = int(value-window_size)
         # generate interval of audio files
-        interval = list(range(0, max_value,sliding_window)) + [value-window_size]
+        interval = list(range(0, max_value+1,sliding_window)) 
         df_val = df[df['length']==value]
         n_files = len(df_val)
         print(f'Preprocessing {n_files} .wav files  with lenght {value:.3f}')
@@ -108,7 +119,7 @@ def inference_df_torch(audio_path,
     
     try:
         waveform, sample_rate = torchaudio.load(audio_path, 
-                                        frame_offset=sample_rate*start_second, 
+                                        frame_offset=int(sample_rate*start_second), 
                                         num_frames=sample_rate*window_size)
 
 
@@ -139,7 +150,7 @@ def inference_df_torch(audio_path,
         input = input[0].unsqueeze_(0).unsqueeze_(0)
         
         inference = sigmoid(trained_model(input))
-        return inference.tolist()#.detach().numpy()
+        return inference.tolist()[0]#.detach().numpy()
     except Exception as e: 
         #print('File:',start_second, audio_path)
         #print(e)
@@ -162,24 +173,37 @@ def run_inferences(data_path, model_path, model_metadata):
 
     df = preprocessing_metadata(data_path, window_size, sliding_window)
     # df = df.sample(10000)
-
+    
+    t0 = time()
+    """
+    # Dask
     ProgressBar().register()
     ddf = dd.from_pandas(df, npartitions=8)
-
     # Apply inferences over all samples using CNN model
-
-    t0 = time()
-    ddf['inference'] = ddf.apply(lambda x: inference_df_torch(x['path_audio'],
+    ddf[class_mapping] = ddf.apply(lambda x: inference_df_torch(x['path_audio'],
                                                               model_instance,
                                                               x['min'],
                                                               window_size,
                                                               ),
                                  axis=1,
-                                 # result_type='expand'
+                                 result_type='expand'
                                  )
     # Convert Dask DataFrame back to Pandas DataFrame
     df = ddf.compute()
+    """
+    df[class_mapping] = df.apply(lambda x: inference_df_torch(x['path_audio'],
+                                                              model_instance,
+                                                              x['min'],
+                                                              window_size,
+                                                              ),
+                                 axis=1,
+                                 result_type='expand'
+                                 )
+    
     t1 = time()
+    
+    
+    
     execution_time = str(round(t1 - t0, 1))
     print('-------------->>>>> Results for Dask ' + execution_time)
 
