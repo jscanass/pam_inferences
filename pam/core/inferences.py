@@ -116,6 +116,8 @@ def inference_df_torch(audio_path,
                     sample_rate=22050
                     # TO DO: hyperparameters_dict
                     ):
+    print('File:', audio_path)
+    print('Start second:', start_second)
     
     try:
         waveform, sample_rate = torchaudio.load(audio_path, 
@@ -150,10 +152,10 @@ def inference_df_torch(audio_path,
         input = input[0].unsqueeze_(0).unsqueeze_(0)
         
         inference = sigmoid(trained_model(input))
+        print('Inference done')
         return inference.tolist()[0]#.detach().numpy()
     except Exception as e: 
-        #print('File:',start_second, audio_path)
-        #print(e)
+        print('Error:',e)
         return [None]*42
 
 def run_inferences(data_path, model_path, model_metadata):
