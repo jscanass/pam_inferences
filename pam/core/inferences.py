@@ -1,16 +1,16 @@
 import os
-import argparse
-import yaml
-import librosa 
+#import argparse
+#import yaml
+#import librosa
 import numpy as np
 import pandas as pd
-import dask.dataframe as dd
+#import dask.dataframe as dd
 
-from dask.diagnostics import ProgressBar
+#from dask.diagnostics import ProgressBar
 from maad import util
-from joblib import load
-from librosa.feature import melspectrogram, mfcc
-from tensorflow import keras
+#from joblib import load
+#from librosa.feature import melspectrogram, mfcc
+#from tensorflow import keras
 
 from time import time
   
@@ -19,7 +19,7 @@ import torchaudio
 from torchvision.transforms import Resize
 
 from torch import nn
-from torch_models import ResNetClassifier
+from models.templates_models.torch_models import ResNetClassifier
 
 class_mapping = [
                 'SPHSUR', 'BOABIS', 'SCIPER', 'DENNAH', 'LEPLAT', 'RHIICT', 'BOALEP',
@@ -40,8 +40,7 @@ def preprocessing_metadata(data_folder,
     print('Extracting metadata in folder ', data_folder)
     df = util.get_metadata_dir(data_folder, verbose=verbose)
     print('Metadata obtained. Number of .wav files:',len(df))
-    print('Count of lenghts:\n',
-            df['length'].value_counts(dropna=False))
+    print('Count of lenghts:\n', df['length'].value_counts(dropna=False))
     # remove nan values
     df = df.loc[~df.sample_rate.isna(),:]
     print('Number of .wav files withot empty files:', len(df))
@@ -203,9 +202,7 @@ def run_inferences(data_path, model_path, model_metadata):
                                  )
     
     t1 = time()
-    
-    
-    
+
     execution_time = str(round(t1 - t0, 1))
     print('-------------->>>>> Results for Dask ' + execution_time)
 
