@@ -4,9 +4,9 @@ import os
 #import librosa
 import numpy as np
 import pandas as pd
-#import dask.dataframe as dd
+import dask.dataframe as dd
 
-#from dask.diagnostics import ProgressBar
+from dask.diagnostics import ProgressBar
 from maad import util
 #from joblib import load
 #from librosa.feature import melspectrogram, mfcc
@@ -176,7 +176,7 @@ def run_inferences(data_path, model_path, model_metadata):
     # df = df.sample(10000)
     
     t0 = time()
-    """
+ 
     # Dask
     ProgressBar().register()
     ddf = dd.from_pandas(df, npartitions=8)
@@ -200,7 +200,7 @@ def run_inferences(data_path, model_path, model_metadata):
                                  axis=1,
                                  result_type='expand'
                                  )
-    
+    """
     t1 = time()
 
     execution_time = str(round(t1 - t0, 1))
