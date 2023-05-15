@@ -182,3 +182,6 @@ def get_data_by_filename(file_name_list):
             ext = file_split[-1]
             get(prefix='/'.join(file_name.split('/')[0:-1]) + '/', name_start_with=file_name.split('/')[-1], ext=ext,
                 output_dir='raw_data', download=True)
+
+# get_raw_data(site='INCT20995')
+# get_records(site='INCT20995')

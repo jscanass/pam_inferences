@@ -17,6 +17,9 @@ home = pjoin(op.expanduser('~'), '.chorus')
 
 
 class FetcherError(Exception):
+    """
+    Exception template for fetcher
+    """
     pass
 
 
@@ -28,6 +31,9 @@ def _log(msg):
 
 
 def copyfileobj_withprogress(fsrc, fdst, total_length, length=16 * 1024):
+    """
+    Progress estimation function
+    """
     for ii in tqdm(range(0, int(total_length), length), unit=" MB"):
         buf = fsrc.read(length)
         if not buf:
@@ -79,6 +85,12 @@ def check_md5(filename, stored_md5=None):
 
 
 def _get_file_data(fname, url):
+    """
+    Get file using the data name and url path
+    :param fname: File name
+    :param url: URL base
+    :return: None
+    """
     with contextlib.closing(urlopen(url)) as opener:
         try:
             response_size = opener.headers['content-length']
@@ -140,7 +152,7 @@ def fetch_data(files, folder, data_size=None):
 def _make_fetcher(name, folder, baseurl, remote_fnames, local_fnames,
                   md5_list=None, doc="", data_size=None, msg=None,
                   unzip=False):
-    """ Create a new fetcher
+    """ Create a new fetcher (based on dype implementation)
 
     Parameters
     ----------
@@ -209,7 +221,7 @@ def _make_fetcher(name, folder, baseurl, remote_fnames, local_fnames,
     fetcher.__doc__ = doc
     return fetcher
 
-
+#Test fetcher
 fetch_test = _make_fetcher(
     "fetch_test",
     pjoin(home, 'test'),

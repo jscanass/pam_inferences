@@ -2,14 +2,15 @@ import os
 import nipype
 from os.path import join as opj
 from nipype.interfaces.utility import IdentityInterface
-from nipype.interfaces.io import DataSink
 from nipype import Node
 from .nodes.Input import Input
 from .nodes.Model import Model
 from .nodes.Output import Output
 
 class WorkflowBase:
-
+    """
+    Base class to define workflows
+    """
     # Initializer / Instance Attributes
     def __init__(self, site, model, metadata):
         self.site = site
@@ -20,10 +21,15 @@ class WorkflowBase:
 
 
 class Workflow(WorkflowBase):
-
+    """
+    Workflow class which descripte the implementation for a inference execution
+    """
     def run(self):
+        """
+        Function that initialize a pipeline and workflow
+        :return: None
+        """
         experiment_dir = 'experiment_output/'
-        output_dir = 'datasink'
         working_dir = 'workingdir'
 
         site = self.site
@@ -36,12 +42,11 @@ class Workflow(WorkflowBase):
         init_source.inputs.model_path = os.path.abspath(model_path)
         init_source.inputs.model_metadata = model_metadata
 
-        # Datasink - creates output folder for important outputs
-        datasink = Node(DataSink(base_directory=experiment_dir, container=output_dir), name="datasink")
-
+        #Define a nypipe workflow
         wf = nipype.Workflow(name='workflow')
         wf.base_dir = opj(experiment_dir, working_dir)
 
+        #Nypipe node definition
         input = Node(Input(site=init_source.inputs.site), name="input")
         output = Node(Output(), name="output")
         model = Node(Model(model_path=init_source.inputs.model_path , model_metadata=init_source.inputs.model_metadata), name="model")
@@ -53,5 +58,9 @@ class Workflow(WorkflowBase):
                     (init_source, model, [('model_metadata', 'model_metadata')]),
                     (model, output, [('out_put', 'in_file')])
                     ])
+
+        #Write a graphic representation of the pipeline
         wf.write_graph(graph2use='colored', format='png', simple_form=True)
+
+        #Run the pipeline
         wf.run()
