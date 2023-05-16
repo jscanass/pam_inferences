@@ -178,10 +178,10 @@ def get_data_by_filename(file_name_list):
     else:
         for i in file_name_list:
             file_split = i.split('.')
-            file_name = ''.join(file_split[0:-1])
+            file_name = '.'.join(file_split[0:-1])
             ext = file_split[-1]
             get(prefix='/'.join(file_name.split('/')[0:-1]) + '/', name_start_with=file_name.split('/')[-1], ext=ext,
-                output_dir='raw_data', download=True)
+                output_dir='data_by_filename', download=True)
 
 # get_raw_data(site='INCT20995')
 # get_records(site='INCT20995')
