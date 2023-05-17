@@ -84,11 +84,11 @@ https://chorus.blob.core.windows.net/public/inferences/INCT20955_inferences_torc
 
 The download will be done through the browser and will be stored in the default downloads folder.
 
-## License (TODO)
+## License
 
-...
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/breyner-posso/chorus_ebvs/blob/main/LICENSE)
 
+## Contact
 
-## Citing this work (TODO)
-
-..-
+Juan Sebastián Ulloa (julloa@humboldt.org.co)
+Juan Sebastián Cañas (jcanas@humboldt.org.co)
