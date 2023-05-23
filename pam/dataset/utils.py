@@ -1,6 +1,4 @@
-from datetime import datetime, timedelta
-from azure.storage.blob import BlobServiceClient, ContainerClient, generate_account_sas, ResourceTypes, \
-    AccountSasPermissions
+from azure.storage.blob import BlobServiceClient, ContainerClient
 
 ACCOUNT_URL = "https://chorus.blob.core.windows.net" #Account Azure path
 KEY = "" #Pase key account here
@@ -32,16 +30,9 @@ def get_container_client(account_name, account_key, container_name):
 
     """
     try:
-        sas_token = generate_account_sas(
-            account_name=account_name,
-            account_key=account_key,
-            resource_types=ResourceTypes(service=True),
-            permission=AccountSasPermissions(read=True, list=True),
-            expiry=datetime.utcnow() + timedelta(hours=2)
-        )
         container_client = ContainerClient(account_url=ACCOUNT_URL,
                                            container_name=container_name,
-                                           account_key=sas_token)
+                                           credential=account_key)
         return container_client
     except Exception as ex:
         print('Exception: ' + ex.__str__())
@@ -57,6 +48,7 @@ def get_blob_client(account_key):
     @return: A instance of a blob client
 
     """
-    blob_service_client = BlobServiceClient(account_url=ACCOUNT_URL, credential=account_key)
+    blob_service_client = BlobServiceClient(account_url=ACCOUNT_URL,
+                                            credential=account_key)
 
     return blob_service_client
