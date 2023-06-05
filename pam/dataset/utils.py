@@ -13,7 +13,8 @@ PREFIX_RECORDS = {'INCT20955': 'INCT.selvino/1_Locais/INCT20995/gravador/',
                  'INCT41': 'INCT.rbastos/1_Locais/INCT41/gravador/',
                  'INCT4': 'INCT.ftoledo/1_Locais/INCT04/gravador/',
                  'INCT17': 'INCT.franco/1_Locais/INCT17/gravador/',
-                 'INCTTEST': 'INCT.test/1_Locais/INCT.test/gravador/'}
+                 'INCTTEST': 'INCT.test/1_Locais/INCT.test/gravador/',
+                 'INCTS4A09810':'INCT.franco/1_Locais/INCT17/gravador_S4A09810/'}
 
 CONTAINER_NAME_PUBLIC = 'public'
 CONTAINER_NAME_BACKUP = 'backup'
