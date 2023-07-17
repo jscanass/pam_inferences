@@ -88,6 +88,10 @@ The download will be done through the browser and will be stored in the default 
 
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/breyner-posso/chorus_ebvs/blob/main/LICENSE)
 
+
+## Acknowledgments
+The authors acknowledge financial support from the intergovernmental Group on Earth Observations (GEO) and Microsoft, under the GEO-Microsoft Planetary Computer Programme (October 2021).
+
 ## Contact
 
 Juan Sebastián Ulloa (julloa@humboldt.org.co)
