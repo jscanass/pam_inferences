@@ -94,5 +94,3 @@ The authors acknowledge financial support from the intergovernmental Group on Ea
 
 ## Contact
 
-- Juan Sebastián Ulloa (julloa@humboldt.org.co, [juansulloa](https://github.com/juansulloa))
-- Juan Sebastián Cañas (jcanas@humboldt.org.co, [jscanass](https://github.com/jscanass))
